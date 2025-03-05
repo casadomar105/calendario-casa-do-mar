@@ -86,7 +86,7 @@
             margin-right: 20px;
             cursor: pointer;
             font-size: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 2px;
         }
 
         .legend div span {
@@ -97,16 +97,16 @@
             border-radius: 50%;
         }
 
-        .orange {
-            background-color: orange;
-        }
-
         .pink {
             background-color: #ffc0cb;
         }
 
         .blue {
             background-color: #1e90ff;
+        }
+
+        .orange {
+            background-color: orange;
         }
 
         .yellow {
@@ -123,7 +123,7 @@
             justify-content: center;
             align-items: center;
             margin-top: 20px;
-            gap: 10px; /* Espaçamento entre os botões */
+            gap: 5px; /* Espaçamento entre os botões */
         }
 
         .observation-controls button {
@@ -196,11 +196,11 @@
    <h1>CALENDÁRIO - CASA DO MAR</h1>
     <div id='calendar'></div>
     <div class="legend">
-        <div data-color="#ff9800"><span class="orange"></span>Faxina</div>
         <div data-color="#ffc0cb"><span class="pink"></span>Airbnb</div>
         <div data-color="#1e90ff"><span class="blue"></span>Particular</div>
+        <div data-color="#ff9800"><span class="orange"></span>Faxina</div>
         <div data-color="yellow"><span class="yellow"></span>Manutenção</div>
-        <div data-color="#32cd32"><span class="lime"></span>Casa</div>
+        <div data-color="#32cd32"><span class="lime"></span>Familiar</div>
     </div>
 
     <!-- Controles de observação -->
@@ -219,7 +219,7 @@
             const observationText = document.getElementById('observationText');
             const addObservationButton = document.getElementById('addObservationButton');
             const deleteObservationButton = document.getElementById('deleteObservationButton');
-            let selectedColor = '#ff9800'; // Cor padrão inicial
+            let selectedColor = '#ffc0cb'; // Cor padrão inicial
             let selectedDate = null;
 
             // Carrega dados salvos no localStorage
