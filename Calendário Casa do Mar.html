@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário Interativo</title>
+    <link href='https://unpkg.com/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
+    <style>
+        /* Estilo para o corpo da página */
+        body {
+            font-family: Calibri, Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        /* Estilo para o título */
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 1.7em;
+        }
+
+        /* Estilo para o toolbar do FullCalendar */
+        .fc-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        /* Estilo para o título do toolbar (mês e ano) */
+        .fc-toolbar-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #0B5394;
+        }
+
+        /* Estilo para os botões do toolbar */
+        .fc-toolbar .fc-button {
+            background-color: #0B5394;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .fc-toolbar .fc-button:hover {
+            background-color: #0B5394;
+        }
+
+        /* Estilo específico para o botão "Hoje" */
+        .fc-today-button {
+            background-color: #0B5394 !important;
+        }
+
+        /* Estilo para o calendário */
+        #calendar {
+            max-width: 600px;
+            height: 500px; /* Define a altura do calendário */
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        /* Estilo para as datas destacadas */
+        .highlighted-date {
+            border-radius: 50%;
+        }
+
+        /* Estilo para a legenda */
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend div {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .legend div span {
+            width: 15px;
+            height: 15px;
+            display: inline-block;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
+
+        .orange {
+            background-color: orange;
+        }
+
+        .pink {
+            background-color: #ffc0cb;
+        }
+
+        .blue {
+            background-color: #1e90ff;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .lime {
+            background-color: #32cd32;
+        }
+
+        /* Estilo para os controles de observação */
+        .observation-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 10px; /* Espaçamento entre os botões */
+        }
+
+        .observation-controls button {
+            background-color: #0B5394;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px; /* Tamanho maior para os símbolos */
+        }
+
+        .observation-controls button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .observation-controls button:hover:not(:disabled) {
+            background-color: #0B5394;
+        }
+
+        /* Estilo para a caixa de texto de observação */
+        .observation-text {
+            width: 200px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* Estilo para indicar datas com observações */
+        .has-note {
+            position: relative;
+        }
+
+        .has-note::after {
+            content: '●';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: red;
+            font-size: 12px;
+        }
+
+        /* Estilo responsivo para smartphones */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1em;
+            }
+
+            #calendar {
+                padding: 10px;
+            }
+
+            .legend div {
+                font-size: 1em;
+                margin-right: 10px;
+            }
+
+            .legend div span {
+                width: 15px;
+                height: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+   <h1>CALENDÁRIO - CASA DO MAR</h1>
+    <div id='calendar'></div>
+    <div class="legend">
+        <div data-color="#ff9800"><span class="orange"></span>Faxina</div>
+        <div data-color="#ffc0cb"><span class="pink"></span>Airbnb</div>
+        <div data-color="#1e90ff"><span class="blue"></span>Particular</div>
+        <div data-color="yellow"><span class="yellow"></span>Manutenção</div>
+        <div data-color="#32cd32"><span class="lime"></span>Casa</div>
+    </div>
+
+    <!-- Controles de observação -->
+    <div class="observation-controls">
+        <input type="text" id="observationText" class="observation-text" placeholder="Digite uma observação..." disabled>
+        <button id="addObservationButton" disabled>+</button>
+        <button id="deleteObservationButton" disabled>−</button>
+    </div>
+
+    <script src='https://unpkg.com/fullcalendar@5.10.1/main.min.js'></script>
+    <script src='https://unpkg.com/fullcalendar@5.10.1/locales-all.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarEl = document.getElementById('calendar');
+            const legend = document.querySelector('.legend');
+            const observationText = document.getElementById('observationText');
+            const addObservationButton = document.getElementById('addObservationButton');
+            const deleteObservationButton = document.getElementById('deleteObservationButton');
+            let selectedColor = '#ff9800'; // Cor padrão inicial
+            let selectedDate = null;
+
+            // Carrega dados salvos no localStorage
+            const savedDates = JSON.parse(localStorage.getItem('markedDates')) || {};
+            const savedNotes = JSON.parse(localStorage.getItem('notes')) || {};
+
+            // Seleção de cor ao clicar na legenda
+            legend.addEventListener('click', function(event) {
+                const legendItem = event.target.closest('div[data-color]');
+                if (legendItem) {
+                    selectedColor = legendItem.getAttribute('data-color');
+                }
+            });
+
+            // Inicializa o calendário
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                selectable: true,
+                locale: 'pt-br',
+                dateClick: function(info) {
+                    const dateStr = info.dateStr;
+                    const cell = info.dayEl;
+
+                    // Verifica se a data já está marcada
+                    if (savedDates[dateStr]) {
+                        // Se a data tem uma observação, não permite desselecionar, mas exibe a observação
+                        if (savedNotes[dateStr]) {
+                            selectedDate = dateStr;
+                            observationText.disabled = false;
+                            observationText.value = savedNotes[dateStr] || '';
+                            addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
+                            deleteObservationButton.disabled = false; // Ativa o botão de exclusão
+                            return; // Impede a desseleção
+                        } else {
+                            cell.style.backgroundColor = ''; // Remove a marcação
+                            delete savedDates[dateStr];
+                        }
+                    } else {
+                        cell.style.backgroundColor = selectedColor; // Aplica a cor selecionada
+                        savedDates[dateStr] = selectedColor; // Salva a cor no objeto
+                    }
+
+                    // Salva as datas marcadas no localStorage
+                    localStorage.setItem('markedDates', JSON.stringify(savedDates));
+
+                    // Ativa os controles de observação ao selecionar uma data
+                    selectedDate = dateStr;
+                    observationText.disabled = false;
+                    observationText.value = savedNotes[dateStr] || '';
+                    addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
+                    deleteObservationButton.disabled = !savedNotes[dateStr]; // Ativa o botão de exclusão se houver uma nota
+
+                    // Adiciona a classe para indicar que a data tem uma observação
+                    if (savedNotes[dateStr]) {
+                        cell.classList.add('has-note');
+                    } else {
+                        cell.classList.remove('has-note');
+                    }
+
+                    // Atualiza o calendário
+                    calendar.render();
+                },
+                eventDidMount: function(info) {
+                    // Aplica as cores salvas ao carregar o calendário
+                    const dateStr = info.event.startStr;
+                    if (savedDates[dateStr]) {
+                        info.el.style.backgroundColor = savedDates[dateStr];
+                    }
+
+                    // Adiciona a classe para indicar que a data tem uma observação
+                    if (savedNotes[dateStr]) {
+                        info.el.classList.add('has-note');
+                    }
+                },
+                datesSet: function(info) {
+                    // Restaura as marcações ao mudar de mês
+                    const cells = document.querySelectorAll('.fc-day');
+                    cells.forEach(cell => {
+                        const dateStr = cell.getAttribute('data-date');
+                        if (savedDates[dateStr]) {
+                            cell.style.backgroundColor = savedDates[dateStr];
+                        }
+
+                        // Adiciona a classe para indicar que a data tem uma observação
+                        if (savedNotes[dateStr]) {
+                            cell.classList.add('has-note');
+                        } else {
+                            cell.classList.remove('has-note');
+                        }
+                    });
+                }
+            });
+
+            // Evento de digitação na caixa de texto
+            observationText.addEventListener('input', function() {
+                addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
+            });
+
+            // Evento de clique no botão de adicionar observação (+)
+            addObservationButton.addEventListener('click', function() {
+                if (selectedDate) {
+                    savedNotes[selectedDate] = observationText.value; // Salva a observação
+                    localStorage.setItem('notes', JSON.stringify(savedNotes));
+
+                    // Atualiza o calendário para exibir o indicador de observação
+                    calendar.render();
+
+                    // Ativa o botão de exclusão
+                    deleteObservationButton.disabled = false;
+
+                                                   // Recarrega a página para garantir que as alterações sejam aplicadas
+                                                  location.reload();
+                }
+            });
+
+            // Evento de clique no botão de exclusão (−)
+            deleteObservationButton.addEventListener('click', function() {
+                if (selectedDate && savedNotes[selectedDate]) {
+                    delete savedNotes[selectedDate]; // Remove a observação
+                    localStorage.setItem('notes', JSON.stringify(savedNotes));
+
+                    // Limpa a caixa de texto
+                    observationText.value = '';
+
+                    // Desativa o botão de exclusão
+                    deleteObservationButton.disabled = true;
+
+                    // Atualiza o calendário para remover o indicador de observação
+                    calendar.render();
+
+                                                    // Recarrega a página para garantir que as alterações sejam aplicadas
+                                                   location.reload();
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
