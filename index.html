@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendário Interativo</title>
+    <title>Calendário - Casa do Mar</title>
     <link href='https://unpkg.com/fullcalendar@5.10.1/main.min.css' rel='stylesheet' />
-    <style>
+    
+<!-- Adicionando o Manifesto do PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0B5394">
+    
+<style>
         /* Estilo para o corpo da página */
         body {
             font-family: Calibri, Arial, sans-serif;
@@ -357,6 +362,15 @@
 
             calendar.render();
         });
+
+ // Registra o Service Worker para o PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(() => console.log('Service Worker registrado com sucesso!'))
+                .catch((error) => console.log('Erro ao registrar Service Worker:', error));
+        }
+
+    </script>
     </script>
 </body>
 </html>
