@@ -2,8 +2,6 @@ const CACHE_NAME = 'calendario-casa-do-mar-v1';
 const ASSETS = [
   '/calendario-casa-do-mar/',
   '/calendario-casa-do-mar/index.html',
-  '/calendario-casa-do-mar/styles.css',
-  '/calendario-casa-do-mar/script.js',
   '/calendario-casa-do-mar/icon-192x192.png',
   '/calendario-casa-do-mar/icon-512x512.png'
 ];
