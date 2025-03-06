@@ -364,13 +364,12 @@
         });
 
  // Registra o Service Worker para o PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(() => console.log('Service Worker registrado com sucesso!'))
-                .catch((error) => console.log('Erro ao registrar Service Worker:', error));
-        }
-
-    </script>
+           if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('https://casadomar105.github.io/calendario-casa-do-mar/sw.js')
+    .then(() => console.log('Service Worker registrado com sucesso!'))
+    .catch((error) => console.log('Erro ao registrar Service Worker:', error));
+}
+        
     </script>
 </body>
 </html>
