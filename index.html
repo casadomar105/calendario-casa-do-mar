@@ -71,8 +71,8 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             padding: 20px;
         }
-
-.fc-daygrid-day-frame {
+        
+        .fc-daygrid-day-frame {
     height: 10px; /* Ajuste a altura das células */
 }
 
@@ -244,13 +244,13 @@
             });
 
             // Inicializa o calendário
-            const calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                selectable: true,
-                locale: 'pt-br',             
-                fixedWeekCount: false,
-                dayMaxRow: 5,
-                dateClick: function(info) {
+const calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    selectable: true,
+    locale: 'pt-br',
+    fixedWeekCount: false,
+
+    dateClick: function(info) {
                     const dateStr = info.dateStr;
                     const cell = info.dayEl;
 
@@ -370,12 +370,12 @@
         });
 
  // Registra o Service Worker para o PWA
-           if ('serviceWorker' in navigator) {
+        if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('https://casadomar105.github.io/calendario-casa-do-mar/sw.js')
     .then(() => console.log('Service Worker registrado com sucesso!'))
     .catch((error) => console.log('Erro ao registrar Service Worker:', error));
 }
-        
+
     </script>
 </body>
 </html>
