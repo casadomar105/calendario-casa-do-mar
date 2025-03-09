@@ -218,6 +218,12 @@
         <button id="addObservationButton" disabled>+</button>
         <button id="deleteObservationButton" disabled>−</button>
     </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+    <button onclick="resetCalendar()" style="background-color: red; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
+        Resetar Calendário
+    </button>
+</div>
 
     <script src='https://unpkg.com/fullcalendar@5.10.1/main.min.js'></script>
     <script src='https://unpkg.com/fullcalendar@5.10.1/locales-all.min.js'></script>
@@ -368,6 +374,15 @@ const calendar = new FullCalendar.Calendar(calendarEl, {
 
             calendar.render();
         });
+        
+        // Função para resetar o calendário
+function resetCalendar() {
+    if (confirm("Tem certeza que deseja resetar o calendário? Isso apagará todas as marcações e observações.")) {
+        localStorage.removeItem('markedDates');
+        localStorage.removeItem('notes');
+        location.reload(); // Recarrega a página para aplicar as mudanças
+    }
+}
 
  // Registra o Service Worker para o PWA
         if ('serviceWorker' in navigator) {
