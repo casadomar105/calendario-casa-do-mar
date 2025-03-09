@@ -72,6 +72,10 @@
             padding: 20px;
         }
 
+.fc-daygrid-day-frame {
+    height: 10px; /* Ajuste a altura das células */
+}
+
         /* Estilo para as datas destacadas */
         .highlighted-date {
             border-radius: 50%;
@@ -243,9 +247,9 @@
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 selectable: true,
-                locale: 'pt-br',
-                dayMaxRow: 5,
+                locale: 'pt-br',             
                 fixedWeekCount: false,
+                dayMaxRow: 5,
                 dateClick: function(info) {
                     const dateStr = info.dateStr;
                     const cell = info.dayEl;
