@@ -208,7 +208,7 @@
 /* Estilo do Texto dos Feriados */
 
 .feriado {
-    #background-color: #608fb9 !important; /* Azul claro */
+    #background-color: #f4f4f4 !important; /* Azul claro */
     color: #000 !important; /* Texto preto */
     text-align: left;
     font-size: 10px; /* Texto menor */
@@ -227,6 +227,12 @@
 
     position: relative; /* Garante que o feriado seja posicionado corretamente */
     height: 40px; /* Ajuste a altura das células */
+
+}
+
+/* Estilo para células que contêm um feriado */
+.fc-day.has-holiday {
+    background-color: #f4f4f4; /* Cor de fundo para células com feriado */
 }
 
         
@@ -248,6 +254,7 @@
         <input type="text" id="observationText" class="observation-text" placeholder="Digite uma observação..." disabled>
         <button id="addObservationButton" disabled>+</button>
         <button id="deleteObservationButton" disabled>−</button>
+        <button id="addHolidayButton" disabled>::</button>
     </div>
     
     <div style="text-align: center; margin-top: 20px;">
@@ -260,7 +267,8 @@
     <script src='https://unpkg.com/fullcalendar@5.10.1/locales-all.min.js'></script>
 <script>
     // Lista de feriados nacionais com datas fixas (mês-dia)
-    const feriadosFixos = {
+    const feriadosFixos = JSON.parse(localStorage.getItem('feriadosFixos')) || {
+
         "01-01": "Ano Novo",
         "2025-04-18": "Paixão de Cristo",
         "04-21": "Tiradentes",
@@ -297,6 +305,105 @@
             }
         });
 
+
+
+// Botão de adicionar feriado
+
+const addHolidayButton = document.getElementById('addHolidayButton');
+
+// Evento de clique para adicionar um feriado
+addHolidayButton.addEventListener('click', function() {
+    if (selectedDate && observationText.value.trim() !== "") {
+        const dateKey = selectedDate.slice(5, 10); // Formato MM-DD
+        const fullDateKey = selectedDate; // Formato AAAA-MM-DD
+
+        // Salva o feriado na lista local
+        feriadosFixos[dateKey] = observationText.value; // Feriados fixos sem ano específico
+        feriadosFixos[fullDateKey] = observationText.value; // Feriados com ano específico
+
+        // Atualiza o localStorage para persistência (opcional)
+        localStorage.setItem('feriadosFixos', JSON.stringify(feriadosFixos));
+
+        // Atualiza o calendário para exibir o novo feriado
+        calendar.render();
+
+        // Desativa o botão após salvar
+        addHolidayButton.disabled = true;
+
+        // Mensagem de confirmação
+        alert(`Feriado "${observationText.value}" adicionado em ${selectedDate}`);
+
+  // **Recarrega a página para aplicar a mudança**
+        location.reload();
+    }
+});
+
+// Ativa o botão ✓ apenas se houver uma data selecionada e texto preenchido
+observationText.addEventListener('input', function() {
+    addHolidayButton.disabled = !(selectedDate && observationText.value.trim() !== "");
+});
+
+
+
+// Botão de exclusão (−)
+
+deleteObservationButton.addEventListener('click', function() {
+    if (selectedDate) {
+        const dateKey = selectedDate.slice(5, 10); // Formato MM-DD
+        const fullDateKey = selectedDate; // Formato AAAA-MM-DD
+        const hasHoliday = feriadosFixos[dateKey] || feriadosFixos[fullDateKey];
+
+        // Verifica se há uma observação na data selecionada
+        if (savedNotes[selectedDate]) {
+            delete savedNotes[selectedDate]; // Remove a observação
+            localStorage.setItem('notes', JSON.stringify(savedNotes));
+
+            // Mantém a seleção da data e a cor original
+            const cell = document.querySelector(`.fc-day[data-date="${selectedDate}"]`);
+            if (cell) {
+                cell.style.backgroundColor = savedDates[selectedDate] || ''; // Mantém a cor da marcação
+                cell.classList.remove('has-note'); // Remove o indicador de observação
+            }
+
+            // Desativa o botão de exclusão se não houver feriado
+            if (!hasHoliday) {
+                deleteObservationButton.disabled = true;
+            }
+        }
+
+        // Verifica se há um feriado na data selecionada
+        if (hasHoliday) {
+            delete feriadosFixos[dateKey]; // Remove o feriado sem ano específico
+            delete feriadosFixos[fullDateKey]; // Remove o feriado com ano específico
+            localStorage.setItem('feriadosFixos', JSON.stringify(feriadosFixos));
+
+            // Remove o texto do feriado
+            const cell = document.querySelector(`.fc-day[data-date="${selectedDate}"]`);
+            if (cell) {
+                cell.querySelector('.feriado')?.remove(); // Remove o texto do feriado
+            }
+
+            // Limpa a cor de fundo da data (se não houver observação)
+            if (!savedNotes[selectedDate]) {
+                cell.style.backgroundColor = '';
+                delete savedDates[selectedDate]; // Remove a marcação da data
+                localStorage.setItem('markedDates', JSON.stringify(savedDates));
+            }
+
+            // Desativa o botão de exclusão e descarta a seleção da data
+            deleteObservationButton.disabled = true;
+            selectedDate = null;
+        }
+
+        // Limpa a caixa de texto
+        observationText.value = '';
+
+        // Atualiza o calendário
+        calendar.render();
+    }
+});
+
+
         // Inicializa o calendário
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -304,49 +411,76 @@
             locale: 'pt-br',
             fixedWeekCount: false,
 
-            dateClick: function(info) {
-                const dateStr = info.dateStr;
-                const cell = info.dayEl;
+dateClick: function(info) {
+    const dateStr = info.dateStr;
+    const cell = info.dayEl;
 
-                // Verifica se a data já está marcada
-                if (savedDates[dateStr]) {
-                    // Se a data tem uma observação, não permite desselecionar, mas exibe a observação
-                    if (savedNotes[dateStr]) {
-                        selectedDate = dateStr;
-                        observationText.disabled = false;
-                        observationText.value = savedNotes[dateStr] || '';
-                        addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
-                        deleteObservationButton.disabled = false; // Ativa o botão de exclusão
-                        return; // Impede a desseleção
-                    } else {
-                        cell.style.backgroundColor = ''; // Remove a marcação
-                        delete savedDates[dateStr];
-                    }
-                } else {
-                    cell.style.backgroundColor = selectedColor; // Aplica a cor selecionada
-                    savedDates[dateStr] = selectedColor; // Salva a cor no objeto
-                }
+    // Verifica se a data já está marcada
+    if (savedDates[dateStr]) {
+        // Se a data tem uma observação, não permite desselecionar, mas exibe a observação
+        if (savedNotes[dateStr]) {
+            selectedDate = dateStr;
+            observationText.disabled = false;
+            observationText.value = savedNotes[dateStr] || '';
+            addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
+            deleteObservationButton.disabled = false; // Ativa o botão de exclusão
+            return; // Impede a desseleção
+        } else {
+            cell.style.backgroundColor = ''; // Remove a marcação
+            delete savedDates[dateStr];
+        }
+    } else {
+        cell.style.backgroundColor = selectedColor; // Aplica a cor selecionada
+        savedDates[dateStr] = selectedColor; // Salva a cor no objeto
+    }
 
-                // Salva as datas marcadas no localStorage
-                localStorage.setItem('markedDates', JSON.stringify(savedDates));
+    // Salva as datas marcadas no localStorage
+    localStorage.setItem('markedDates', JSON.stringify(savedDates));
 
-                // Ativa os controles de observação ao selecionar uma data
-                selectedDate = dateStr;
-                observationText.disabled = false;
-                observationText.value = savedNotes[dateStr] || '';
-                addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
-                deleteObservationButton.disabled = !savedNotes[dateStr]; // Ativa o botão de exclusão se houver uma nota
+    // Ativa os controles de observação ao selecionar uma data
+    selectedDate = dateStr;
+    observationText.disabled = false;
+    observationText.value = savedNotes[dateStr] || '';
+    addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
 
-                // Adiciona a classe para indicar que a data tem uma observação
-                if (savedNotes[dateStr]) {
-                    cell.classList.add('has-note');
-                } else {
-                    cell.classList.remove('has-note');
-                }
+    // Verifica se há um feriado na data selecionada
+    const dateKey = dateStr.slice(5, 10); // Formato MM-DD
+    const fullDateKey = dateStr; // Formato AAAA-MM-DD
+    const hasHoliday = feriadosFixos[dateKey] || feriadosFixos[fullDateKey];
 
-                // Atualiza o calendário
-                calendar.render();
-            },
+    // Ativa o botão de exclusão se houver uma observação ou feriado
+    deleteObservationButton.disabled = !(savedNotes[dateStr] || hasHoliday);
+
+    // Adiciona a classe para indicar que a data tem uma observação
+    if (savedNotes[dateStr]) {
+        cell.classList.add('has-note');
+    } else {
+        cell.classList.remove('has-note');
+    }
+
+    // Exibe o feriado, mesmo se houver uma observação
+    if (hasHoliday) {
+        const nomeFeriado = feriadosFixos[fullDateKey] || feriadosFixos[dateKey];
+        let feriadoTexto = cell.querySelector('.feriado');
+        if (!feriadoTexto) {
+            feriadoTexto = document.createElement("div");
+            feriadoTexto.classList.add("feriado");
+            cell.appendChild(feriadoTexto);
+        }
+        feriadoTexto.innerText = nomeFeriado;
+        cell.style.position = "relative"; // Garante que o posicionamento absoluto funcione corretamente
+    }
+
+    // Prevalência do estilo da observação (cor de fundo)
+    if (savedNotes[dateStr]) {
+        cell.style.backgroundColor = savedDates[dateStr]; // Mantém a cor da observação
+    }
+
+    // Atualiza o calendário
+    calendar.render();
+},
+
+
 
           datesSet: function(info) {
     // Restaura as marcações ao mudar de mês
@@ -365,7 +499,7 @@
     
                     if (feriadosFixos[dateKey] || feriadosFixos[fullDateKey]) {
                         const nomeFeriado = feriadosFixos[fullDateKey] || feriadosFixos[dateKey];
-                        cell.style.backgroundColor = "#f4f4f4"; // Cinza claro
+                        cell.classList.add('has-holiday'); // Adiciona a classe para células com feriado
                         cell.style.color = "#000"; // Texto preto
                        
 const feriadoTexto = document.createElement("div");
@@ -386,50 +520,37 @@ cell.style.position = "relative"; // Garante que o posicionamento absoluto funci
             }
         });
 
+
+
         // Evento de digitação na caixa de texto
         observationText.addEventListener('input', function() {
             addObservationButton.disabled = !observationText.value; // Ativa o botão (+) apenas se houver texto
         });
 
-        // Evento de clique no botão de adicionar observação (+)
-        addObservationButton.addEventListener('click', function() {
-            if (selectedDate) {
-                savedNotes[selectedDate] = observationText.value; // Salva a observação
-                localStorage.setItem('notes', JSON.stringify(savedNotes));
 
-                // Atualiza o calendário para exibir o indicador de observação
-                calendar.render();
 
-                // Ativa o botão de exclusão
-                deleteObservationButton.disabled = false;
+   // Evento de clique no botão de adicionar observação (+)
+    addObservationButton.addEventListener('click', function() {
+        if (selectedDate) {
+            savedNotes[selectedDate] = observationText.value; // Salva a observação
+            localStorage.setItem('notes', JSON.stringify(savedNotes));
 
-                // Recarrega a página para garantir que as alterações sejam aplicadas
-                location.reload();
-            }
-        });
+            // Atualiza o calendário para exibir o indicador de observação
+            calendar.render();
 
-        // Evento de clique no botão de exclusão (−)
-        deleteObservationButton.addEventListener('click', function() {
-            if (selectedDate && savedNotes[selectedDate]) {
-                delete savedNotes[selectedDate]; // Remove a observação
-                localStorage.setItem('notes', JSON.stringify(savedNotes));
+            // Ativa o botão de exclusão
+            deleteObservationButton.disabled = false;
 
-                // Limpa a caixa de texto
-                observationText.value = '';
-
-                // Desativa o botão de exclusão
-                deleteObservationButton.disabled = true;
-
-                // Atualiza o calendário para remover o indicador de observação
-                calendar.render();
-
-                // Recarrega a página para garantir que as alterações sejam aplicadas
-                location.reload();
-            }
-        });
-
-        calendar.render();
+            // Recarrega a página para garantir que as alterações sejam aplicadas
+            location.reload();
+        }
     });
+
+    calendar.render();
+});
+
+
+
 
     // Função para resetar o calendário
     function resetCalendar() {
